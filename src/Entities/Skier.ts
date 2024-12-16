@@ -10,11 +10,14 @@ import { ImageManager } from "../Core/ImageManager";
 import { intersectTwoRects, Rect } from "../Core/Utils";
 import { ObstacleManager } from "./Obstacles/ObstacleManager";
 import { Obstacle } from "./Obstacles/Obstacle";
+import { Animation } from "../Core/Animation";
+import jumpingSound from "../../assets/audio/jump_sound.mp3";
 
 /**
  * The skier starts running at this speed. Saved in case speed needs to be reset at any point.
  */
 const STARTING_SPEED: number = 10;
+const STARTING_HEIGHT: number = 0;
 
 /**
  * The different states the skier can be in.
@@ -35,6 +38,11 @@ const DIRECTION_DOWN: number = 2;
 const DIRECTION_RIGHT_DOWN: number = 3;
 const DIRECTION_RIGHT: number = 4;
 
+const JUMP_1: number = 0;
+const JUMP_2: number = 1;
+const JUMP_3: number = 2;
+const JUMP_4: number = 3;
+const JUMP_5: number = 4;
 /**
  * Mapping of the image to display for the skier based upon which direction they're facing.
  */
@@ -45,6 +53,14 @@ const DIRECTION_IMAGES: { [key: number]: IMAGE_NAMES } = {
     [DIRECTION_RIGHT_DOWN]: IMAGE_NAMES.SKIER_RIGHTDOWN,
     [DIRECTION_RIGHT]: IMAGE_NAMES.SKIER_RIGHT,
 };
+
+const JUMPING_IMAGES: { [key: number]: IMAGE_NAMES } = {
+    [JUMP_1]: IMAGE_NAMES.SKIER_JUMP_1,
+    [JUMP_2]: IMAGE_NAMES.SKIER_JUMP_2,
+    [JUMP_3]: IMAGE_NAMES.SKIER_JUMP_3,
+    [JUMP_4]: IMAGE_NAMES.SKIER_JUMP_4,
+    [JUMP_5]: IMAGE_NAMES.SKIER_JUMP_5,
+}
 
 export class Skier extends Entity {
     /**
@@ -68,9 +84,21 @@ export class Skier extends Entity {
     speed: number = STARTING_SPEED;
 
     /**
+     * How fast the skier was previously. Useful for setting speed after modifiers have
+     * been applied after a crash.
+     */
+    prevSpeed: number = STARTING_SPEED;
+
+    /**
+     * Skier's height above ground level
+     */
+    height: number = STARTING_HEIGHT;
+
+    /**
      * Stored reference to the ObstacleManager
      */
     obstacleManager: ObstacleManager;
+    jumpSound: HTMLAudioElement = new Audio(jumpingSound);
 
     /**
      * Init the skier.
@@ -93,6 +121,9 @@ export class Skier extends Entity {
      */
     isSkiing(): boolean {
         return this.state === STATES.STATE_SKIING;
+    }
+    isAirborne(): boolean {
+        return this.height > 0
     }
 
     /**
@@ -215,6 +246,7 @@ export class Skier extends Entity {
         if (this.isDead()) {
             return false;
         }
+        // console.log(inputKey);
 
         let handled: boolean = true;
 
@@ -230,6 +262,13 @@ export class Skier extends Entity {
                 break;
             case KEYS.DOWN:
                 this.turnDown();
+                break;
+            case KEYS.SPACE:
+                console.log("jump");
+                if (this.height > 0) {
+                    break;
+                }
+                this.jump();
                 break;
             default:
                 handled = false;
@@ -316,7 +355,8 @@ export class Skier extends Entity {
     }
 
     /**
-     * Go through all the obstacles in the game and see if the skier collides with any of them. If so, crash the skier.
+     * Go through all the obstacles in the game and see if the skier collides with any of them. If so, crash the skier
+     * and pass information to handle the crash behaviour.
      */
     checkIfHitObstacle() {
         const skierBounds = this.getBounds();
@@ -324,37 +364,81 @@ export class Skier extends Entity {
             return;
         }
 
-        const collision = this.obstacleManager.getObstacles().find((obstacle: Obstacle): boolean => {
+        const collision = this.obstacleManager.getObstacles().find((obstacle: Obstacle): Obstacle | null => {
             const obstacleBounds = obstacle.getBounds();
             if (!obstacleBounds) {
-                return false;
+                return null;
             }
 
-            return intersectTwoRects(skierBounds, obstacleBounds);
+            if (intersectTwoRects(skierBounds, obstacleBounds)) {
+                return obstacle;
+            }
+            else {
+                return null;
+            }
+
         });
 
         if (collision) {
-            this.crash();
+            this.crash(collision);
         }
     }
 
     /**
-     * Crash the skier. Set the state to crashed, set the speed to zero cause you can't move when crashed and update the
-     * image.
+     * Crash the skier. Handle the crash behaviour accordingly
+     * 
      */
-    crash() {
-        this.state = STATES.STATE_CRASHED;
-        this.speed = 0;
-        this.imageName = IMAGE_NAMES.SKIER_CRASH;
+    crash(obstacle: Obstacle) {
+        if (this.height > obstacle.obstacleProperties.height) {
+            return;
+        }
+        switch (obstacle.imageName) {
+            case ("tree"):
+                this.state = STATES.STATE_CRASHED;
+                this.speed = 0;
+                this.imageName = IMAGE_NAMES.SKIER_CRASH;
+                break;
+            case ("treeCluster"):
+                this.state = STATES.STATE_CRASHED;
+                this.speed = 0;
+                this.imageName = IMAGE_NAMES.SKIER_CRASH;
+                break;
+            case ("rock1"):
+                this.state = STATES.STATE_CRASHED;
+                this.speed = 0;
+                this.imageName = IMAGE_NAMES.SKIER_CRASH;
+                break;
+            case ("rock2"):
+                this.state = STATES.STATE_CRASHED;
+                this.speed = 0;
+                this.imageName = IMAGE_NAMES.SKIER_CRASH;
+                break;
+            case ("jumpRamp"):
+                this.jump()
+                break;
+            case ("muddyTerrain"):
+                this.speed = obstacle.obstacleProperties.speedMultiplier * STARTING_SPEED;
+                this.prevSpeed = this.speed;
+                break;
+            case ("speedBoost"):
+                this.speed = obstacle.obstacleProperties.speedMultiplier * STARTING_SPEED;
+                this.prevSpeed = STARTING_SPEED;
+                break;
+            default:
+                this.state = STATES.STATE_CRASHED;
+                this.speed = 0;
+                this.imageName = IMAGE_NAMES.SKIER_CRASH;
+                break;
+        }
     }
 
     /**
-     * Change the skier back to the skiing state, get them moving again at the starting speed and set them facing
+     * Change the skier back to the skiing state, get them moving again at the previous speed and set them facing
      * whichever direction they're recovering to.
      */
     recoverFromCrash(newDirection: number) {
         this.state = STATES.STATE_SKIING;
-        this.speed = STARTING_SPEED;
+        this.speed = this.prevSpeed;
         this.setDirection(newDirection);
     }
 
@@ -364,5 +448,52 @@ export class Skier extends Entity {
     die() {
         this.state = STATES.STATE_DEAD;
         this.speed = 0;
+    }
+
+    /**
+     * The skier jumps, which cycles through the images and plays a jump sound. Makes use of the pre-existing Animation class 
+     */
+    jump() {
+        // Define the jump animation sequence
+        const jumpAnimation = new Animation(
+            [IMAGE_NAMES.SKIER_JUMP_1, IMAGE_NAMES.SKIER_JUMP_2, IMAGE_NAMES.SKIER_JUMP_3, IMAGE_NAMES.SKIER_JUMP_4, IMAGE_NAMES.SKIER_JUMP_5],
+            false, // Don't loop the jump animation
+            () => {  // Callback
+                this.imageName = IMAGE_NAMES.SKIER_DOWN;
+                this.height = 0;
+            }
+        );
+        this.jumpSound.play().catch((error) => {
+            console.error("Error playing jump sound:", error);
+        });
+        this.height = 2;
+        this.playAnimation(jumpAnimation);
+    }
+
+    /**
+     * Play the animation by cycling through its images.
+     */
+    private playAnimation(animation: Animation) {
+        let i = 0;
+        const images = animation.getImages();
+        const intervalId = setInterval(() => {
+            // Stop the animation if the skier crashes
+            if (this.state === STATES.STATE_CRASHED) {    
+                clearInterval(intervalId);
+                return;
+            }
+            // Set the skier's image to the next image in the animation sequence
+            this.imageName = images[i];
+            i++;
+
+            // When the animation completes
+            if (i >= images.length) {
+                clearInterval(intervalId); 
+                const callback = animation.getCallback();
+                if (callback) {
+                    callback(); // Call the completion callback (set height to 0)
+                }
+            }
+        }, 100); // 100ms interval for each frame
     }
 }

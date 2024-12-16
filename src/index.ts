@@ -5,8 +5,18 @@
 import "../css/game.css";
 import { Game } from "./Core/Game";
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async function handleDOMContentLoaded() {
+    await startGame();
+    document.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
+});
+
+const startGame = async () => {
     const skiGame: Game = new Game();
     await skiGame.load();
     skiGame.run();
-});
+}
+
+
+
+
+

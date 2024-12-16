@@ -1,4 +1,5 @@
 import { iImage } from "./Interfaces/iImage";
+import { iObstacleProperties } from "./Interfaces/iObstacleProperties";
 
 export const GAME_CANVAS = "skiCanvas";
 export const GAME_WIDTH = window.innerWidth;
@@ -9,6 +10,7 @@ export enum KEYS {
     RIGHT = "ArrowRight",
     UP = "ArrowUp",
     DOWN = "ArrowDown",
+    SPACE = " "
 }
 
 export enum IMAGE_NAMES {
@@ -31,6 +33,14 @@ export enum IMAGE_NAMES {
     RHINO_EAT4 = "rhinoEat4",
     RHINO_CELEBRATE1 = "rhinoCelebrate1",
     RHINO_CELEBRATE2 = "rhinoCelebrate2",
+    JUMP_RAMP = "jumpRamp",
+    SKIER_JUMP_1 = "skierJump1",
+    SKIER_JUMP_2 = "skierJump2",
+    SKIER_JUMP_3 = "skierJump3",
+    SKIER_JUMP_4 = "skierJump4",
+    SKIER_JUMP_5 = "skierJump5",
+    MUDDY_TERRAIN = "muddyTerrain",
+    SPEED_BOOST = "speedBoost"
 }
 
 export const IMAGES: iImage[] = [
@@ -53,7 +63,25 @@ export const IMAGES: iImage[] = [
     { name: IMAGE_NAMES.RHINO_EAT4, url: "img/rhino_eat_4.png" },
     { name: IMAGE_NAMES.RHINO_CELEBRATE1, url: "img/rhino_celebrate_1.png" },
     { name: IMAGE_NAMES.RHINO_CELEBRATE2, url: "img/rhino_celebrate_2.png" },
+    { name: IMAGE_NAMES.JUMP_RAMP, url: "img/jump_ramp.png" },
+    { name: IMAGE_NAMES.SKIER_JUMP_1, url: "img/skier_jump_1.png" },
+    { name: IMAGE_NAMES.SKIER_JUMP_2, url: "img/skier_jump_2.png" },
+    { name: IMAGE_NAMES.SKIER_JUMP_3, url: "img/skier_jump_3.png" },
+    { name: IMAGE_NAMES.SKIER_JUMP_4, url: "img/skier_jump_4.png" },
+    { name: IMAGE_NAMES.SKIER_JUMP_5, url: "img/skier_jump_5.png" },
+    { name: IMAGE_NAMES.MUDDY_TERRAIN, url: "img/muddy_terrain.png" },
+    { name: IMAGE_NAMES.SPEED_BOOST, url: "img/speed_boost.png" },
 ];
+
+export const OBSTACLE_PROPERTIES : iObstacleProperties[] = [
+    { name: IMAGE_NAMES.TREE , height: 2, speedMultiplier: 1},
+    { name: IMAGE_NAMES.TREE_CLUSTER , height: 2, speedMultiplier: 1},
+    { name: IMAGE_NAMES.ROCK1 , height: 1, speedMultiplier: 1},
+    { name: IMAGE_NAMES.ROCK2 , height: 1, speedMultiplier: 1},
+    { name: IMAGE_NAMES.JUMP_RAMP , height: 0, speedMultiplier: 1},
+    { name: IMAGE_NAMES.MUDDY_TERRAIN , height: 0, speedMultiplier: 0.6},
+    { name: IMAGE_NAMES.SPEED_BOOST , height: 0, speedMultiplier: 1.2}
+] 
 
 export const ANIMATION_FRAME_SPEED_MS: number = 250;
 export const DIAGONAL_SPEED_REDUCER: number = 1.4142;

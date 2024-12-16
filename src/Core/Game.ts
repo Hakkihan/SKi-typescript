@@ -9,6 +9,7 @@ import { Position, Rect } from "./Utils";
 import { ObstacleManager } from "../Entities/Obstacles/ObstacleManager";
 import { Rhino } from "../Entities/Rhino";
 import { Skier } from "../Entities/Skier";
+import backgroundMusic from '../../assets/audio/Labyrinth_runescape.ogg'
 
 export class Game {
     /**
@@ -39,9 +40,12 @@ export class Game {
      * The enemy that chases the skier
      */
     private rhino!: Rhino;
+    private bgMusic: HTMLAudioElement = new Audio(backgroundMusic);
+    private isMuted: boolean = true;
 
     /**
-     * Initialize the game and setup any input handling needed.
+     * Initialize the game and setup any input handling needed. Event listeners for the 
+     * toggle music and restart buttons
      */
     constructor() {
         this.init();
@@ -61,6 +65,14 @@ export class Game {
 
         this.calculateGameWindow();
         this.obstacleManager.placeInitialObstacles();
+        this.bgMusic.loop = true;
+    }
+    private toggleBackgroundMusic() {
+        this.isMuted = !this.isMuted;
+        if (!this.isMuted) {
+            this.bgMusic.play()
+        }
+        this.bgMusic.muted = this.isMuted;
     }
 
     /**
@@ -83,11 +95,20 @@ export class Game {
      */
     run() {
         this.canvas.clearCanvas();
+        this.canvas.setupCanvas();
 
         this.updateGameWindow();
         this.drawGameWindow();
 
         requestAnimationFrame(this.run.bind(this));
+    }
+
+    /**
+     * Restarts the run.
+     */
+    restartRun() {
+        this.canvas.clearCanvas();
+        this.canvas.setupCanvas();
     }
 
     /**
@@ -111,10 +132,9 @@ export class Game {
      */
     drawGameWindow() {
         this.canvas.setDrawOffset(this.gameWindow.left, this.gameWindow.top);
-
+        this.obstacleManager.drawObstacles();
         this.skier.draw();
         this.rhino.draw();
-        this.obstacleManager.drawObstacles();
     }
 
     /**
@@ -132,8 +152,23 @@ export class Game {
     /**
      * Handle keypresses and delegate to any game objects that might have key handling of their own.
      */
-    handleKeyDown(event: KeyboardEvent) {
-        let handled: boolean = this.skier.handleInput(event.key);
+    async handleKeyDown(event: KeyboardEvent) {
+        let handled = false;
+        // Handle global inputs
+        switch (event.key.toLowerCase()) {
+            case 'm':
+                this.toggleBackgroundMusic();
+                handled = true;
+                break;
+            case 'r':
+                this.init();
+                await this.load();
+                this.restartRun();
+                handled = true;
+                break;
+        }
+        // Handle skier-specific input
+        handled = this.skier.handleInput(event.key);
 
         if (handled) {
             event.preventDefault();

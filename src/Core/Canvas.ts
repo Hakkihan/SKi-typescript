@@ -66,6 +66,24 @@ export class Canvas {
         this.canvas.style.height = this.height + "px";
 
         this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        this.createMenu();
+
+    }
+
+    createMenu() {
+        this.ctx.font = '16px Monospace';
+        this.ctx.fillStyle = 'blue';
+        this.ctx.textAlign = 'center';
+
+        const text = "Buttons\nSPACE: Jump \nM: Toggle Music\nR: Restart ";
+        const lines = text.split("\n");
+        const x = this.width * 9 / 10;
+        const startY = this.height * 1 / 10;
+        const lineHeight = 20;
+
+        lines.forEach((line, index) => {
+            this.ctx.fillText(line, x, startY + index * lineHeight);
+        });
     }
 
     /**

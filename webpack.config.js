@@ -22,6 +22,16 @@ const config = {
                 test: /\.css$/,
                 use: ["style-loader", "css-loader"],
             },
+            {
+                test: /\.(mp3|wav|ogg)$/i,
+                use: {
+                    loader: "file-loader",
+                    options: {
+                        name: "[name].[hash].[ext]",
+                        outputPath: "assets/audio/",
+                    },
+                },
+            },
         ],
     },
 
