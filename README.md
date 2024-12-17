@@ -97,6 +97,8 @@ We are looking forward to see what you come up with!!
 
 UPDATE:
 
+Please let me know if there are any issues with starting up the project. npm install followed by npm run dev should have things running. Alternatively if you want to run some of the tests please try npm install followed by npm test
+
 Features added:
 
 1) Jumping mechanic added. 
