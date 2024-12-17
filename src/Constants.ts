@@ -80,8 +80,9 @@ export const OBSTACLE_PROPERTIES : iObstacleProperties[] = [
     { name: IMAGE_NAMES.ROCK2 , height: 1, speedMultiplier: 1},
     { name: IMAGE_NAMES.JUMP_RAMP , height: 0, speedMultiplier: 1},
     { name: IMAGE_NAMES.MUDDY_TERRAIN , height: 0, speedMultiplier: 0.6},
-    { name: IMAGE_NAMES.SPEED_BOOST , height: 0, speedMultiplier: 1.2}
+    { name: IMAGE_NAMES.SPEED_BOOST , height: 0, speedMultiplier: 1.3}
 ] 
 
 export const ANIMATION_FRAME_SPEED_MS: number = 250;
+
 export const DIAGONAL_SPEED_REDUCER: number = 1.4142;

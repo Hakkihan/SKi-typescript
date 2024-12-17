@@ -12,6 +12,7 @@ import { ObstacleManager } from "./Obstacles/ObstacleManager";
 import { Obstacle } from "./Obstacles/Obstacle";
 import { Animation } from "../Core/Animation";
 import jumpingSound from "../../assets/audio/jump_sound.mp3";
+import { CanvasWrapper } from "../Core/CanvasWrapper";
 
 /**
  * The skier starts running at this speed. Saved in case speed needs to be reset at any point.
@@ -38,11 +39,6 @@ const DIRECTION_DOWN: number = 2;
 const DIRECTION_RIGHT_DOWN: number = 3;
 const DIRECTION_RIGHT: number = 4;
 
-const JUMP_1: number = 0;
-const JUMP_2: number = 1;
-const JUMP_3: number = 2;
-const JUMP_4: number = 3;
-const JUMP_5: number = 4;
 /**
  * Mapping of the image to display for the skier based upon which direction they're facing.
  */
@@ -54,13 +50,6 @@ const DIRECTION_IMAGES: { [key: number]: IMAGE_NAMES } = {
     [DIRECTION_RIGHT]: IMAGE_NAMES.SKIER_RIGHT,
 };
 
-const JUMPING_IMAGES: { [key: number]: IMAGE_NAMES } = {
-    [JUMP_1]: IMAGE_NAMES.SKIER_JUMP_1,
-    [JUMP_2]: IMAGE_NAMES.SKIER_JUMP_2,
-    [JUMP_3]: IMAGE_NAMES.SKIER_JUMP_3,
-    [JUMP_4]: IMAGE_NAMES.SKIER_JUMP_4,
-    [JUMP_5]: IMAGE_NAMES.SKIER_JUMP_5,
-}
 
 export class Skier extends Entity {
     /**
@@ -95,6 +84,11 @@ export class Skier extends Entity {
     height: number = STARTING_HEIGHT;
 
     /**
+     * Stored reference to the CanvasWrapper. Useful for emitting events.
+     */
+    canvasWrapper!: CanvasWrapper
+
+    /**
      * Stored reference to the ObstacleManager
      */
     obstacleManager: ObstacleManager;
@@ -103,10 +97,11 @@ export class Skier extends Entity {
     /**
      * Init the skier.
      */
-    constructor(x: number, y: number, imageManager: ImageManager, obstacleManager: ObstacleManager, canvas: Canvas) {
+    constructor(x: number, y: number, imageManager: ImageManager, obstacleManager: ObstacleManager, canvas: Canvas, canvasWrapper: CanvasWrapper) {
         super(x, y, imageManager, canvas);
 
         this.obstacleManager = obstacleManager;
+        this.canvasWrapper = canvasWrapper;
     }
 
     /**
@@ -448,6 +443,7 @@ export class Skier extends Entity {
     die() {
         this.state = STATES.STATE_DEAD;
         this.speed = 0;
+        this.canvasWrapper.stopScoreUpdater();
     }
 
     /**
@@ -476,9 +472,13 @@ export class Skier extends Entity {
     private playAnimation(animation: Animation) {
         let i = 0;
         const images = animation.getImages();
+        const callback = animation.getCallback();
         const intervalId = setInterval(() => {
             // Stop the animation if the skier crashes
-            if (this.state === STATES.STATE_CRASHED) {    
+            if (this.state === STATES.STATE_CRASHED) { 
+                if (callback) {
+                    callback(); // Call the completion callback (set height to 0)
+                }
                 clearInterval(intervalId);
                 return;
             }
@@ -489,7 +489,6 @@ export class Skier extends Entity {
             // When the animation completes
             if (i >= images.length) {
                 clearInterval(intervalId); 
-                const callback = animation.getCallback();
                 if (callback) {
                     callback(); // Call the completion callback (set height to 0)
                 }

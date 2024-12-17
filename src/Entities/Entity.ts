@@ -35,6 +35,7 @@ export abstract class Entity {
         this.position = new Position(x, y);
         this.imageManager = imageManager;
         this.canvas = canvas;
+        
     }
 
     /**

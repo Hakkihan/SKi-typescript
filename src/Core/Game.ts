@@ -10,8 +10,14 @@ import { ObstacleManager } from "../Entities/Obstacles/ObstacleManager";
 import { Rhino } from "../Entities/Rhino";
 import { Skier } from "../Entities/Skier";
 import backgroundMusic from '../../assets/audio/Labyrinth_runescape.ogg'
+import { CanvasWrapper } from "./CanvasWrapper";
 
 export class Game {
+
+    /**
+     * The canvas wrapper for overlays such as controls
+     */
+    private canvasWrapper!: CanvasWrapper;
     /**
      * The canvas the game will be displayed on
      */
@@ -56,23 +62,21 @@ export class Game {
      * Create all necessary game objects and initialize them as needed.
      */
     init() {
+        this.canvasWrapper = new CanvasWrapper("game-canvas", GAME_WIDTH, GAME_HEIGHT);
         this.canvas = new Canvas(GAME_CANVAS, GAME_WIDTH, GAME_HEIGHT);
+        this.canvasWrapper.wrapper.appendChild(this.canvas.canvas);
+        this.canvasWrapper.addMenuOverlay();
+        this.canvasWrapper.startScoreUpdater();
         this.imageManager = new ImageManager();
         this.obstacleManager = new ObstacleManager(this.imageManager, this.canvas);
 
-        this.skier = new Skier(0, 0, this.imageManager, this.obstacleManager, this.canvas);
+        this.skier = new Skier(0, 0, this.imageManager, this.obstacleManager, this.canvas, this.canvasWrapper);
         this.rhino = new Rhino(-500, -2000, this.imageManager, this.canvas);
 
         this.calculateGameWindow();
         this.obstacleManager.placeInitialObstacles();
         this.bgMusic.loop = true;
-    }
-    private toggleBackgroundMusic() {
-        this.isMuted = !this.isMuted;
-        if (!this.isMuted) {
-            this.bgMusic.play()
-        }
-        this.bgMusic.muted = this.isMuted;
+
     }
 
     /**
@@ -80,6 +84,14 @@ export class Game {
      */
     setupInputHandling() {
         document.addEventListener("keydown", this.handleKeyDown.bind(this));
+    }
+
+    private toggleBackgroundMusic() {
+        this.isMuted = !this.isMuted;
+        if (!this.isMuted) {
+            this.bgMusic.play()
+        }
+        this.bgMusic.muted = this.isMuted;
     }
 
     /**
@@ -160,7 +172,8 @@ export class Game {
                 this.toggleBackgroundMusic();
                 handled = true;
                 break;
-            case 'r':
+            case 'r': //removes the overlay before reloading the game with a new overlay
+                this.canvasWrapper.removeOverlay(); 
                 this.init();
                 await this.load();
                 this.restartRun();
