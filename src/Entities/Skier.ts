@@ -241,7 +241,6 @@ export class Skier extends Entity {
         if (this.isDead()) {
             return false;
         }
-        // console.log(inputKey);
 
         let handled: boolean = true;
 
@@ -259,7 +258,6 @@ export class Skier extends Entity {
                 this.turnDown();
                 break;
             case KEYS.SPACE:
-                console.log("jump");
                 if (this.height > 0) {
                     break;
                 }
@@ -459,9 +457,11 @@ export class Skier extends Entity {
                 this.height = 0;
             }
         );
-        this.jumpSound.play().catch((error) => {
-            console.error("Error playing jump sound:", error);
-        });
+        if (this.jumpSound) {
+            this.jumpSound.play().catch((error) => {
+                console.error("Error playing jump sound:", error);
+            });
+        }
         this.height = 2;
         this.playAnimation(jumpAnimation);
     }
@@ -469,17 +469,19 @@ export class Skier extends Entity {
     /**
      * Play the animation by cycling through its images.
      */
-    private playAnimation(animation: Animation) {
+    public playAnimation(animation: Animation) {
         let i = 0;
         const images = animation.getImages();
         const callback = animation.getCallback();
         const intervalId = setInterval(() => {
             // Stop the animation if the skier crashes
             if (this.state === STATES.STATE_CRASHED) { 
+
                 if (callback) {
                     callback(); // Call the completion callback (set height to 0)
                 }
                 clearInterval(intervalId);
+                this.imageName = IMAGE_NAMES.SKIER_CRASH;
                 return;
             }
             // Set the skier's image to the next image in the animation sequence

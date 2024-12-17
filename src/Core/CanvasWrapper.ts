@@ -58,8 +58,8 @@ export class CanvasWrapper {
         if (!this.scoreInterval) {
             this.scoreInterval = window.setInterval(() => {
                 this.score += 100; // Increment score by 100
-                this.updateOverlay(); // Update the displayed score
-            }, 1000);
+                this.updateOverlay(); 
+            }, 1000); // Update the displayed score every second
         }
     }
 
